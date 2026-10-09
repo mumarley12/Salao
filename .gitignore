@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+.env*.local
+.vercel
+video/*.mp4
+video/animado/node_modules
+video/animado/out
+video/animado/public/clips
+video/animado/audio/out
+video/animado/public/audio
