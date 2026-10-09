@@ -113,7 +113,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
                   <p className="s-professional-hours">{daysLabel}{hoursLabel && `, ${hoursLabel}`}</p>
                   <div className="s-professional-foot">
                     <span className="s-next">{nextFree(b)}</span>
-                    <button className="s-btn-outline" onClick={() => openBooking(b.id)}>Agendar com {first}</button>
+                    <button className="s-btn-outline" onClick={() => openBooking(b.id)}>Agendar<span className="s-hide-m"> com {first}</span></button>
                   </div>
                 </div>
               </article>

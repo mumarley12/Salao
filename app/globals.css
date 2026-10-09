@@ -18,8 +18,8 @@ img{display:block}
 .site a{color:#E7A3B7;text-decoration:none}
 .site a:hover{color:#F2C1CF}
 .s-section{max-width:1200px;margin:0 auto;padding:88px 24px}
-.s-h2{font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-0.02em;font-size:clamp(30px,4vw,44px);line-height:1.1;margin:0;text-wrap:balance}
-.s-h3{animation:fadeUp .3s ease both;font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-0.02em;font-size:28px;margin:0 0 6px}
+.s-h2{font-family:Archivo,sans-serif;font-weight:800;letter-spacing:-0.02em;font-size:clamp(30px,4vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+.s-h3{animation:fadeUp .3s ease both;font-family:Archivo,sans-serif;font-weight:800;letter-spacing:-0.02em;font-size:28px;margin:0 0 6px}
 .s-muted{color:#A8A196;font-size:14px;margin:0}
 .s-eyebrow{margin:0 0 14px;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#E7A3B7}
 .s-label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#E7A3B7;margin-bottom:6px}
@@ -38,7 +38,7 @@ img{display:block}
 .s-header-in{max-width:1200px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .site .s-brand{display:flex;align-items:center;gap:12px;color:#F3EFE7}
 .s-brand img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid rgba(231,163,183,.5)}
-.s-brand span{font-family:'DM Serif Display',serif;font-weight:400;font-size:21px;letter-spacing:.01em}
+.s-brand span{font-family:Archivo,sans-serif;font-weight:800;font-size:21px;letter-spacing:.01em}
 .s-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-size:13px;font-weight:600;flex:1;min-width:0}
 .site .s-nav a{color:#CFC8BC;white-space:nowrap}
 .site .s-nav a:hover{color:#E7A3B7}
@@ -55,7 +55,7 @@ img{display:block}
 .s-hero-text{max-width:640px}
 .s-pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#E7A3B7;border:1px solid rgba(231,163,183,.35);padding:6px 12px;border-radius:999px;margin-bottom:28px}
 .s-dot{width:7px;height:7px;border-radius:50%;background:#5BD38A}
-.s-hero h1{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(42px,6vw,72px);line-height:1.02;margin:0 0 24px;letter-spacing:-0.01em;text-wrap:balance}
+.s-hero h1{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(42px,6vw,72px);line-height:1.02;margin:0 0 24px;letter-spacing:-0.01em;text-wrap:balance}
 .s-hero p{font-size:18px;line-height:1.6;color:#CFC8BC;margin:0 0 36px;max-width:540px}
 .s-hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
 
@@ -85,7 +85,7 @@ img{display:block}
 .s-how-p2{margin:0;font-size:17px;line-height:1.6;font-weight:700}
 .s-how-steps{display:flex;flex-direction:column;gap:12px;justify-content:center}
 .s-how-steps div{display:flex;align-items:center;gap:16px;background:#18111A;color:#F3EFE7;border-radius:16px;padding:18px 20px;font-size:17px;font-weight:600}
-.s-how-steps div span:first-child{font-family:'DM Serif Display',serif;font-weight:400;font-size:32px;color:#E7A3B7;width:28px}
+.s-how-steps div span:first-child{font-family:Archivo,sans-serif;font-weight:800;font-size:32px;color:#E7A3B7;width:28px}
 
 .s-gallery{scroll-margin-top:72px;background:#1E1620;border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
 .s-gallery .s-h3{margin-bottom:20px}
@@ -116,7 +116,7 @@ img{display:block}
 .s-faq p{margin:0;color:#CFC8BC;line-height:1.6;font-size:16px}
 
 .s-final{background:#231A25;border:1px solid rgba(255,255,255,.07);border-radius:28px;padding:clamp(36px,6vw,80px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px}
-.s-final h2{font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-0.02em;font-size:clamp(34px,5vw,58px);line-height:1.05;margin:0;max-width:760px;text-wrap:balance}
+.s-final h2{font-family:Archivo,sans-serif;font-weight:800;letter-spacing:-0.02em;font-size:clamp(34px,5vw,58px);line-height:1.05;margin:0;max-width:760px;text-wrap:balance}
 .s-final p{margin:0;font-size:18px;line-height:1.6;color:#CFC8BC;max-width:560px}
 .s-final .s-btn{margin-top:8px}
 .s-final .s-final-note{margin-top:16px;font-size:15px;color:#A8A196}
@@ -456,3 +456,51 @@ img{display:block}
 .p-btn-danger:disabled{opacity:.6;cursor:default}
 .s-confirm{max-width:420px;padding:24px;gap:12px}
 .s-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+
+/* ===================== Site do salão no celular: mais limpo e compacto ===================== */
+.s-service-row .s-muted{white-space:nowrap}
+@media (max-width:759px){
+  .s-section{padding:56px 20px}
+  .s-h2{font-size:28px}
+  .s-hero{min-height:auto}
+  .s-hero-content{padding:72px 20px 56px}
+  .s-hero h1{font-size:40px;margin-bottom:16px}
+  .s-hero p{font-size:16px}
+  .s-hero-ctas{flex-direction:column;align-items:stretch}
+  .s-hero-ctas .s-btn{width:100%;text-align:center}
+  .s-hero-ctas .s-btn-ghost{border:0;background:none;padding:6px 0;text-align:center;font-size:15px;text-decoration:underline;text-underline-offset:4px}
+
+  /* profissionais: linhas compactas com foto redonda */
+  .s-professionals{padding-top:8px}
+  .s-professionals .s-h2{margin-bottom:18px}
+  .s-professional-grid{gap:12px}
+  .s-professional{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:14px;padding:14px;border-radius:18px}
+  .s-professional:hover{transform:none}
+  .s-professional-photo{aspect-ratio:1;width:72px;height:72px;border-radius:50%;padding:0;overflow:hidden}
+  .s-professional-photo .s-tag{display:none}
+  .s-professional-body{padding:0;gap:2px}
+  .s-professional-body h3{font-size:17px}
+  .s-professional-hours{margin:2px 0 10px;font-size:13px}
+  .s-hide-m{display:none}
+  .s-professional-foot{gap:8px}
+  .s-professional-foot .s-next{white-space:nowrap;font-size:12px}
+  .s-professional-foot .s-btn-outline{padding:8px 18px;font-size:13px;white-space:nowrap}
+
+  .s-two{gap:28px}
+  .s-pains div{padding:13px 0;font-size:15px}
+  .s-how{border-radius:22px;padding:28px 22px;gap:24px}
+  .s-how-p1{font-size:16px}
+  .s-how-p2{font-size:15px}
+  .s-how-steps div{padding:14px 16px;font-size:15px}
+  .s-how-steps div span:first-child{font-size:24px}
+  .s-gallery-tile{width:170px}
+  .s-service-row{padding:14px 0;gap:10px}
+  .s-service-name{font-size:15px}
+  .s-service-row .s-price{font-size:16px;min-width:60px}
+  .s-info{padding:24px;gap:18px;font-size:15px;border-radius:20px}
+  .s-faq{gap:12px}
+  .s-faq div{padding:20px;border-radius:16px}
+  .s-faq h3{font-size:16px;margin-bottom:8px}
+  .s-faq p{font-size:14px}
+  .s-final{padding:36px 22px;border-radius:22px}
+}

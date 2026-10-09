@@ -9,7 +9,7 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 const font = (file: string) => readFile(join(process.cwd(), 'assets/fonts', file))
-const fonts = Promise.all([font('DMSerifDisplay-Regular.ttf'), font('AlbertSans-Medium.ttf'), font('AlbertSans-Bold.ttf')])
+const fonts = Promise.all([font('Archivo-ExtraBold.ttf'), font('AlbertSans-Medium.ttf'), font('AlbertSans-Bold.ttf')])
 
 // Busca o logo antes de desenhar: se falhar, a prévia sai com a inicial no lugar.
 // Endereço do próprio site, para resolver logos salvos como caminho relativo (/media/logo.jpg).
@@ -48,15 +48,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             <div style={{ width: 12, height: 12, borderRadius: 12, background: '#5BD38A', display: 'flex' }} />
             Agenda online · 24 horas
           </div>
-          <div style={{ fontFamily: 'DM Serif Display', fontSize: 64, lineHeight: 1.04, letterSpacing: -1.5, marginTop: 28, display: 'flex' }}>Agende seu horário sem mandar mensagem.</div>
+          <div style={{ fontFamily: 'Archivo', fontSize: 64, lineHeight: 1.04, letterSpacing: -1.5, marginTop: 28, display: 'flex' }}>Agende seu horário sem mandar mensagem.</div>
           <div style={{ fontSize: 28, color: '#CFC8BC', marginTop: 22, display: 'flex' }}>Escolha a profissional, o serviço e o horário em poucos toques.</div>
           <div style={{ display: 'flex', marginTop: 36, alignSelf: 'flex-start', background: ROSE, color: INK, fontWeight: 700, fontSize: 28, borderRadius: 999, padding: '16px 36px' }}>Agendar meu horário</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, paddingRight: 48 }}>
           {logo
             ? <img src={logo} width={280} height={280} style={{ borderRadius: 280, border: `6px solid ${ROSE}`, objectFit: 'cover' }} />
-            : <div style={{ width: 280, height: 280, borderRadius: 280, border: `6px solid ${ROSE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Serif Display', fontSize: 120, color: ROSE }}>{name.slice(0, 1)}</div>}
-          <div style={{ fontFamily: 'DM Serif Display', fontSize: 42, marginTop: 26, textAlign: 'center', display: 'flex' }}>{name}</div>
+            : <div style={{ width: 280, height: 280, borderRadius: 280, border: `6px solid ${ROSE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Archivo', fontSize: 120, color: ROSE }}>{name.slice(0, 1)}</div>}
+          <div style={{ fontFamily: 'Archivo', fontSize: 42, marginTop: 26, textAlign: 'center', display: 'flex' }}>{name}</div>
           {place && <div style={{ fontSize: 22, color: '#A8A196', marginTop: 8, textAlign: 'center', display: 'flex', maxWidth: 400 }}>{place}</div>}
         </div>
       </div>
@@ -64,7 +64,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     {
       ...size,
       fonts: [
-        { name: 'DM Serif Display', data: serif, weight: 400, style: 'normal' },
+        { name: 'Archivo', data: serif, weight: 800, style: 'normal' },
         { name: 'Albert Sans', data: albert, weight: 500, style: 'normal' },
         { name: 'Albert Sans', data: albertBold, weight: 700, style: 'normal' },
       ],
