@@ -8,10 +8,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
   const { data } = await supabase.rpc('panel_data', { p_token: token, p_from: now, p_to: now })
   const shop = (data as { shop?: { name: string; logo_url: string | null } } | null)?.shop
   if (!shop) return new Response('Não encontrado', { status: 404 })
-  const name = shop.name.replace(/_/g, ' ')
+  // O iPhone mostra este nome nas notificações ("from …").
   const manifest = {
-    name: `${name} · Painel`,
-    short_name: name,
+    name: 'Painel',
+    short_name: 'Painel',
     start_url: `/painel/${token}`,
     scope: `/painel/${token}`,
     display: 'standalone',
