@@ -79,9 +79,20 @@ export function relativeDay(dayKey: string, tz: string) {
   return WEEKDAYS[weekdayOf(dayKey)]
 }
 
+export type Country = 'BR' | 'PT'
+
 export function brl(cents: number) {
   return 'R$ ' + (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })
 }
+
+// Preço na moeda do salão: "R$ 35" no Brasil, "25 €" / "12,50 €" em Portugal.
+export function money(cents: number, country: Country = 'BR') {
+  if (country !== 'PT') return brl(cents)
+  return (cents / 100).toLocaleString('pt-PT', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }) + ' €'
+}
+
+// Serviço com preço 0 = preço ainda não definido pelo salão.
+export const priceLabel = (cents: number, country: Country = 'BR') => (cents > 0 ? money(cents, country) : 'Preço a confirmar')
 
 const hourShort = (hhmm: string) => {
   const [h, m] = hhmm.split(':')
@@ -143,15 +154,26 @@ export function initials(name: string) {
   return name.trim().split(/\s+/).map((w) => w[0] || '').slice(0, 2).join('').toUpperCase()
 }
 
-export function formatPhone(raw: string) {
+export function formatPhone(raw: string, country: Country = 'BR') {
+  if (country === 'PT') {
+    // 912 345 678 (aceita colar com +351 na frente)
+    const p = raw.replace(/\D/g, '').replace(/^351(?=\d{9})/, '').slice(0, 9)
+    return p.replace(/^(\d{3})(\d{1,3})?(\d{1,3})?$/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' '))
+  }
   const d = raw.replace(/\D/g, '').slice(0, 11)
   if (d.length > 6) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
   if (d.length > 2) return `(${d.slice(0, 2)}) ${d.slice(2)}`
   return d
 }
 
-// Telefone salvo (só dígitos) para link do WhatsApp com DDI 55.
-export function waNumber(digits: string) {
+// Telefone salvo (só dígitos) para link do WhatsApp: DDI 55 no Brasil, 351 em Portugal.
+export function waNumber(digits: string, country: Country = 'BR') {
   const d = digits.replace(/\D/g, '')
+  if (country === 'PT') return d.length === 9 ? '351' + d : d
   return d.length <= 11 ? '55' + d : d
+}
+
+// Mostra um número salvo com DDI do jeito local: "(11) 98765-4321" ou "912 345 678".
+export function displayPhone(digits: string, country: Country = 'BR') {
+  return country === 'PT' ? formatPhone(digits, 'PT') : formatPhone(digits.replace(/^55(?=\d{10,11}$)/, ''))
 }

@@ -5,7 +5,7 @@ import { supabase, errorMessage } from '@/lib/supabase'
 import { DEMO_PANEL_TOKEN } from '@/lib/demo'
 import type { Appointment, Professional, ProfessionalHours, Block, Service, Shop } from '@/lib/types'
 import {
-  addDays, atLocal, brl, dayLabel, formatPhone, initials, monthName, scheduleLabels,
+  addDays, atLocal, dayLabel, displayPhone, formatPhone, money, initials, monthName, scheduleLabels,
   timeLabel, todayKey, toMinutes, waNumber, WEEKDAYS, weekdayOf, zoned,
 } from '@/lib/time'
 
@@ -88,7 +88,7 @@ export default function Panel({ token }: { token: string }) {
     const when = key === today ? 'hoje' : key === addDays(today, 1) ? 'amanhã' : dayLabel(key)
     const msg = `Olá, ${a.client_name.split(' ')[0]}! Lembrete do seu horário no ${shop.name}: ${a.service_name} com ${professionalName(a.professional_id).split(' ')[0]}, ${when} às ${timeLabel(start, tz)}.` +
       (a.source === 'site' ? ` Pra cancelar ou remarcar: ${window.location.origin}/agendamento/${a.cancel_token}` : '')
-    return `https://wa.me/${waNumber(a.client_phone)}?text=${encodeURIComponent(msg)}`
+    return `https://wa.me/${waNumber(a.client_phone, shop.country)}?text=${encodeURIComponent(msg)}`
   }
 
   return (
@@ -135,7 +135,7 @@ export default function Panel({ token }: { token: string }) {
 
       {reg && (
         <Register
-          reg={reg} setReg={setReg} professionals={activeProfessionals} services={services} tz={tz}
+          reg={reg} setReg={setReg} professionals={activeProfessionals} services={services} tz={tz} country={shop.country}
           onDone={async (msg) => { setReg(null); await load(); flash(msg) }}
           token={token}
         />
@@ -229,7 +229,7 @@ function Today({ shop, tz, today, professionals, allProfessionals, appointments,
         <div className="p-kpi"><div>Agendados hoje</div><b>{todays.length}</b><small>{todays.length - done.length - ns.length} ainda vêm</small></div>
         <div className="p-kpi"><div>Concluídos</div><b style={{ color: '#2F7A3E' }}>{done.length}</b><small>marcados no painel</small></div>
         <div className="p-kpi"><div>Faltas</div><b style={{ color: '#C2410C' }}>{ns.length}</b><small>não apareceram</small></div>
-        <div className="p-kpi dark"><div>Recebido no balcão</div><b>{brl(sum(done))}</b><small>previsto hoje: {brl(sum(todays.filter((a) => a.status !== 'noshow')))}</small></div>
+        <div className="p-kpi dark"><div>Recebido no balcão</div><b>{money(sum(done), shop.country)}</b><small>previsto hoje: {money(sum(todays.filter((a) => a.status !== 'noshow')), shop.country)}</small></div>
       </div>
 
       <div className="p-columns">
@@ -251,7 +251,7 @@ function Today({ shop, tz, today, professionals, allProfessionals, appointments,
                     <div className="p-appt-row">
                       <div className="p-appt-main">
                         <span className="p-time">{timeLabel(a.starts_at, tz)}</span>
-                        <div><b>{a.client_name}</b><small>{a.service_name} · {brl(a.price_cents)}{a.source === 'walkin' ? ' · sem horário' : ''}</small></div>
+                        <div><b>{a.client_name}</b><small>{a.service_name} · {money(a.price_cents, shop.country)}{a.source === 'walkin' ? ' · sem horário' : ''}</small></div>
                       </div>
                       <span className={'p-chip ' + a.status}>{STATUS_LABEL[a.status]}</span>
                     </div>
@@ -266,7 +266,7 @@ function Today({ shop, tz, today, professionals, allProfessionals, appointments,
                         <button className="p-undo" onClick={() => onStatus(a.id, 'pending')}>Desfazer</button>
                         {ret && <span className="p-ret">Retorno: {dayLabel(dayOf(ret)).replace(',', '')} {timeLabel(ret.starts_at, tz)}</span>}
                         {a.status === 'done' && !ret && (
-                          <button className="p-rebook" onClick={() => onRegister({ mode: 'schedule', client: a.client_name, phone: a.client_phone ? formatPhone(a.client_phone) : '', professional: a.professional_id, service: a.service_id || '' })}>Marcar retorno →</button>
+                          <button className="p-rebook" onClick={() => onRegister({ mode: 'schedule', client: a.client_name, phone: a.client_phone ? displayPhone(a.client_phone, shop.country) : '', professional: a.professional_id, service: a.service_id || '' })}>Marcar retorno →</button>
                         )}
                       </div>
                     )}
@@ -321,8 +321,8 @@ function newReg(professionals: Professional[], services: Service[], today: strin
   }
 }
 
-function Register({ reg: r, setReg, professionals, services, tz, token, onDone }: {
-  reg: RegState; setReg: (r: RegState | null) => void; professionals: Professional[]; services: Service[]; tz: string; token: string
+function Register({ reg: r, setReg, professionals, services, tz, country, token, onDone }: {
+  reg: RegState; setReg: (r: RegState | null) => void; professionals: Professional[]; services: Service[]; tz: string; country: Shop['country']; token: string
   onDone: (msg: string) => void
 }) {
   const set = (patch: Partial<RegState>) => setReg({ ...r, error: '', ...patch })
@@ -371,12 +371,12 @@ function Register({ reg: r, setReg, professionals, services, tz, token, onDone }
         </div>
         <div className="p-grid2">
           <label className="p-field">Cliente<input value={r.client} onChange={(e) => set({ client: e.target.value })} placeholder="Nome do cliente" /></label>
-          <label className="p-field">WhatsApp (opcional)<input value={r.phone} onChange={(e) => set({ phone: formatPhone(e.target.value) })} inputMode="tel" placeholder="(11) 90000-0000" /></label>
+          <label className="p-field">WhatsApp (opcional)<input value={r.phone} onChange={(e) => set({ phone: formatPhone(e.target.value, country) })} inputMode="tel" placeholder={country === 'PT' ? '912 345 678' : '(11) 90000-0000'} /></label>
           <label className="p-field">Profissional
             <select value={r.professional} onChange={(e) => set({ professional: e.target.value })}>{professionals.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
           </label>
           <label className="p-field">Serviço
-            <select value={r.service} onChange={(e) => set({ service: e.target.value })}>{services.filter((s) => s.active || s.id === r.service).map((s) => <option key={s.id} value={s.id}>{s.name} · {brl(s.price_cents)}</option>)}</select>
+            <select value={r.service} onChange={(e) => set({ service: e.target.value })}>{services.filter((s) => s.active || s.id === r.service).map((s) => <option key={s.id} value={s.id}>{s.name} · {money(s.price_cents, country)}</option>)}</select>
           </label>
         </div>
         {r.mode === 'walkin' ? (
@@ -608,20 +608,20 @@ function ProfessionalRow({ b, run }: { b: Professional; run: (fn: string, args: 
 function ShopInfo({ shop, run }: { shop: Shop; run: (fn: string, args: Record<string, unknown>, ok?: string) => Promise<boolean> }) {
   const init = () => ({
     name: shop.name, address: shop.address || '', city: shop.city || '', phone: shop.phone || '',
-    whatsapp: shop.whatsapp ? formatPhone(shop.whatsapp.replace(/^55/, '')) : '', instagram: shop.instagram || '',
+    whatsapp: shop.whatsapp ? displayPhone(shop.whatsapp, shop.country) : '', instagram: shop.instagram || '',
     hours: shop.hours_text.join('\n'),
   })
   const [f, setF] = useState(init)
   useEffect(() => setF(init()), [shop]) // eslint-disable-line react-hooks/exhaustive-deps
   const field = (k: keyof ReturnType<typeof init>, label: string, ph = '') => (
-    <label className="p-field">{label}<input value={f[k]} placeholder={ph} onChange={(e) => setF({ ...f, [k]: k === 'whatsapp' || k === 'phone' ? formatPhone(e.target.value) : e.target.value })} /></label>
+    <label className="p-field">{label}<input value={f[k]} placeholder={ph} onChange={(e) => setF({ ...f, [k]: k === 'whatsapp' || k === 'phone' ? formatPhone(e.target.value, shop.country) : e.target.value })} /></label>
   )
   const save = () => {
     const wa = f.whatsapp.replace(/\D/g, '')
     run('panel_save_shop', {
       p_data: {
         name: f.name, address: f.address, city: f.city, phone: f.phone, instagram: f.instagram.replace('@', ''),
-        whatsapp: wa ? waNumber(wa) : '', hours_text: f.hours.split('\n').map((l) => l.trim()).filter(Boolean),
+        whatsapp: wa ? waNumber(wa, shop.country) : '', hours_text: f.hours.split('\n').map((l) => l.trim()).filter(Boolean),
       },
     }, 'Dados do salão salvos')
   }
@@ -724,7 +724,7 @@ function Report({ shop, tz, today, professionals, appointments, monthKey, curMon
           <div className="p-stats">
             <div><small>Atendidos</small><b>{done.length}</b></div>
             <div><small>Faltas</small><b style={{ color: '#C2410C' }}>{ns.length}</b></div>
-            <div><small>Recebido</small><b>{brl(done.reduce((n, a) => n + a.price_cents, 0))}</b></div>
+            <div><small>Recebido</small><b>{money(done.reduce((n, a) => n + a.price_cents, 0), shop.country)}</b></div>
           </div>
           <div className="p-bars" style={cols}>
             {bars.map((d) => (
@@ -765,7 +765,7 @@ function Report({ shop, tz, today, professionals, appointments, monthKey, curMon
           <div key={a.id} className="p-row">
             <div className="p-row-main">
               <div style={{ minWidth: 86 }}><b>{dayLabel(dayOf(a))}</b><small>{timeLabel(a.starts_at, tz)}</small></div>
-              <div style={{ minWidth: 0 }}><b>{a.client_name}</b><small>{a.service_name} · {(professionals.find((b) => b.id === a.professional_id)?.name || '').split(' ')[0]} · {brl(a.price_cents)}</small></div>
+              <div style={{ minWidth: 0 }}><b>{a.client_name}</b><small>{a.service_name} · {(professionals.find((b) => b.id === a.professional_id)?.name || '').split(' ')[0]} · {money(a.price_cents, shop.country)}</small></div>
             </div>
             <span className={'p-chip ' + a.status}>{STATUS_LABEL[a.status]}</span>
           </div>

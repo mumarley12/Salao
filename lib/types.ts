@@ -14,6 +14,10 @@ export type Shop = {
   gallery: { url: string; label: string }[]
   cancel_hours: number
   late_tolerance_min: number
+  country: 'BR' | 'PT'
+  payment_text: string | null
+  policy: { title: string; items: string[] }[]
+  announcement: { title: string; text: string; until: string } | null
   created_at: string
 }
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase, errorMessage } from '@/lib/supabase'
 import type { Professional, Interval, Service, Shop } from '@/lib/types'
-import { addDays, brl, buildSlots, formatPhone, relativeDay, scheduleLabels, todayKey, WEEKDAYS, weekdayOf } from '@/lib/time'
+import { addDays, buildSlots, displayPhone, formatPhone, priceLabel, relativeDay, scheduleLabels, todayKey, waNumber, WEEKDAYS, weekdayOf } from '@/lib/time'
 
 const DAYS_AHEAD = 14
 
@@ -59,11 +59,24 @@ export default function ShopSite({ shop, professionals, services }: Props) {
 
   const freeToday = now ? professionals.reduce((n, b) => n + (buildSlots(b, days[0], tz, minDur, busy, now) || []).filter((x) => !x.busy).length, 0) : 0
 
+  const country = shop.country || 'BR'
   const waLink = shop.whatsapp ? `https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(`Olá! Vim pelo site do ${shop.name}.`)}` : null
   const igLink = shop.instagram ? `https://instagram.com/${shop.instagram}` : null
 
+  // Sem horários cadastrados ainda: a agenda online fica fechada e os botões levam ao contato do salão.
+  const agendaOpen = professionals.some((b) => b.hours.length > 0)
+  const contactLink = waLink || (shop.instagram ? `https://ig.me/m/${shop.instagram}` : null)
+  const contactName = waLink ? 'WhatsApp' : 'Instagram'
+  const payment = shop.payment_text || 'No salão, depois do atendimento: dinheiro, Pix ou cartão'
+  const announcement = shop.announcement && shop.announcement.until >= todayKey(tz) ? shop.announcement : null
+  const policy = shop.policy || []
+
   const [booking, setBooking] = useState<{ professionalId?: string } | null>(null)
-  const openBooking = (professionalId?: string) => { loadBusy(); setBooking({ professionalId }) }
+  const openBooking = (professionalId?: string) => {
+    if (!agendaOpen) { if (contactLink) window.open(contactLink, '_blank', 'noopener'); return }
+    loadBusy(); setBooking({ professionalId })
+  }
+  const bookLabel = agendaOpen ? 'Agendar meu horário' : `Marcar pelo ${contactName}`
 
   const isMobile = w < 760
   const gallery = shop.gallery?.length ? shop.gallery
@@ -85,6 +98,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
               <a href="#trabalhos">Trabalhos</a>
               <a href="#servicos">Serviços</a>
               <a href="#funcionamento">Funcionamento</a>
+              {policy.length > 0 && <a href="#politica">Política</a>}
               <a href="#duvidas">Dúvidas</a>
             </nav>
           )}
@@ -95,7 +109,17 @@ export default function ShopSite({ shop, professionals, services }: Props) {
         </div>
       </header>
 
-      <Hero videos={shop.hero_videos} freeLabel={freeToday > 0 ? `${freeToday} horários livres hoje` : `Agenda aberta pros próximos ${DAYS_AHEAD} dias`} onBook={() => openBooking()} />
+      <Hero videos={shop.hero_videos} bookLabel={bookLabel} agendaOpen={agendaOpen}
+        freeLabel={!agendaOpen ? 'Agenda online abre em breve' : freeToday > 0 ? `${freeToday} horários livres hoje` : `Agenda aberta pros próximos ${DAYS_AHEAD} dias`} onBook={() => openBooking()} />
+
+      {announcement && (
+        <section data-reveal className="s-section s-announce-wrap">
+          <div className="s-announce">
+            <p className="s-eyebrow">{announcement.title}</p>
+            <p>{announcement.text}</p>
+          </div>
+        </section>
+      )}
 
       <section data-reveal id="profissionais" className="s-section s-professionals">
         <h2 className="s-h2">Nossas profissionais</h2>
@@ -110,10 +134,10 @@ export default function ShopSite({ shop, professionals, services }: Props) {
                 </div>
                 <div className="s-professional-body">
                   <h3>{b.name}</h3>
-                  <p className="s-professional-hours">{daysLabel}{hoursLabel && `, ${hoursLabel}`}</p>
+                  <p className="s-professional-hours">{b.hours.length ? <>{daysLabel}{hoursLabel && `, ${hoursLabel}`}</> : 'Horários em breve'}</p>
                   <div className="s-professional-foot">
-                    <span className="s-next">{nextFree(b)}</span>
-                    <button className="s-btn-outline" onClick={() => openBooking(b.id)}>Agendar<span className="s-hide-m"> com {first}</span></button>
+                    <span className="s-next">{agendaOpen ? nextFree(b) : ''}</span>
+                    <button className="s-btn-outline" onClick={() => openBooking(b.id)}>{agendaOpen ? <>Agendar<span className="s-hide-m"> com {first}</span></> : `Marcar pelo ${contactName}`}</button>
                   </div>
                 </div>
               </article>
@@ -139,7 +163,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
           <div>
             <h2 className="s-h2">Agenda por Profissional</h2>
             <p className="s-how-p1">Cada profissional tem a própria agenda aberta aqui no site.</p>
-            <p className="s-how-p2">Nada é cobrado no site. Você paga no salão, depois do atendimento.</p>
+            <p className="s-how-p2">{shop.payment_text ? 'Nada é cobrado no site. Antes de marcar, veja a política de agendamento.' : 'Nada é cobrado no site. Você paga no salão, depois do atendimento.'}</p>
           </div>
           <div className="s-how-steps">
             {['Escolhe a profissional', 'Escolhe o serviço', 'Pega o horário livre'].map((t, i) => (
@@ -173,8 +197,8 @@ export default function ShopSite({ shop, professionals, services }: Props) {
               <div key={s.id} className="s-service-row">
                 <span className="s-service-name">{s.name}</span>
                 <span className="s-dots" />
-                <span className="s-muted">{s.duration_min} min</span>
-                <span className="s-price">{brl(s.price_cents)}</span>
+                {s.price_cents > 0 && <span className="s-muted">{s.duration_min} min</span>}
+                <span className="s-price">{priceLabel(s.price_cents, country)}</span>
               </div>
             ))}
           </div>
@@ -186,22 +210,33 @@ export default function ShopSite({ shop, professionals, services }: Props) {
           <div>
             <div className="s-label">Contato</div>
             <div className="s-contact">
-              {shop.phone && <a href={`tel:+55${shop.phone.replace(/\D/g, '')}`} className="s-link-plain">Telefone: {shop.phone}</a>}
-              {waLink && <a href={waLink} target="_blank" rel="noopener">WhatsApp: {shop.whatsapp ? formatPhone(shop.whatsapp.replace(/^55/, '')) : ''}</a>}
+              {shop.phone && <a href={`tel:+${waNumber(shop.phone, country)}`} className="s-link-plain">Telefone: {shop.phone}</a>}
+              {waLink && <a href={waLink} target="_blank" rel="noopener">WhatsApp: {shop.whatsapp ? displayPhone(shop.whatsapp, country) : ''}</a>}
               {igLink && <a href={igLink} target="_blank" rel="noopener">Instagram: @{shop.instagram}</a>}
             </div>
           </div>
-          <div><div className="s-label">Pagamento</div><div>No salão, depois do atendimento: dinheiro, Pix ou cartão</div></div>
-          <button className="s-btn" onClick={() => openBooking()}>Agendar meu horário</button>
+          <div><div className="s-label">Pagamento</div><div>{payment}</div></div>
+          <button className="s-btn" onClick={() => openBooking()}>{bookLabel}</button>
         </div>
       </section>
+
+      {policy.length > 0 && (
+        <section data-reveal id="politica" className="s-section">
+          <h2 className="s-h2" style={{ marginBottom: 32 }}>Política de agendamento</h2>
+          <div className="s-faq">
+            {policy.map((p) => (
+              <div key={p.title}><h3>{p.title}</h3>{p.items.map((t, i) => <p key={i} className="s-policy-item">{t}</p>)}</div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section data-reveal id="duvidas" className="s-section">
         <h2 className="s-h2" style={{ marginBottom: 32 }}>Ainda na dúvida?</h2>
         <div className="s-faq">
           {[
             ['"Mas eu prefiro marcar pelo WhatsApp…"', 'Pode continuar. O site só garante o horário na hora, e o lembrete chega lá.'],
-            ['"Mas preciso pagar antes pelo site?"', 'Não. Você paga no salão, depois do atendimento.'],
+            ['"Mas preciso pagar antes pelo site?"', shop.payment_text ? `Nada é cobrado no site. ${shop.payment_text}` : 'Não. Você paga no salão, depois do atendimento.'],
             ['"Mas e se eu não puder ir?"', `Remarque ou cancele até ${shop.cancel_hours} horas antes.`],
             ['"Mas é complicado de usar?"', 'São três passos: profissional, serviço, horário. Pronto.'],
           ].map(([q, a]) => (
@@ -213,8 +248,8 @@ export default function ShopSite({ shop, professionals, services }: Props) {
       <section data-reveal className="s-section">
         <div className="s-final">
           <h2>Seu próximo horário está a três cliques de distância.</h2>
-          <p>Profissional, serviço, horário. Paga depois do atendimento.</p>
-          <button className="s-btn s-btn-lg" onClick={() => openBooking()}>Agendar agora</button>
+          <p>Profissional, serviço, horário.{shop.payment_text ? '' : ' Paga depois do atendimento.'}</p>
+          <button className="s-btn s-btn-lg" onClick={() => openBooking()}>{agendaOpen ? 'Agendar agora' : bookLabel}</button>
           <p className="s-final-note">A agenda da sua profissional é limitada. Garanta o seu horário.</p>
         </div>
       </section>
@@ -226,7 +261,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
       {isMobile && (
         <>
           <div style={{ height: 84 }} />
-          <div className="s-sticky-cta"><button className="s-btn" onClick={() => openBooking()}>Agendar meu horário</button></div>
+          <div className="s-sticky-cta"><button className="s-btn" onClick={() => openBooking()}>{bookLabel}</button></div>
         </>
       )}
 
@@ -244,7 +279,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
 // O fundo do topo aceita vídeos e imagens.
 const IMAGE = /\.(jpe?g|png|webp)(\?|$)/i
 
-function Hero({ videos, freeLabel, onBook }: { videos: string[]; freeLabel: string; onBook: () => void }) {
+function Hero({ videos, freeLabel, bookLabel, agendaOpen, onBook }: { videos: string[]; freeLabel: string; bookLabel: string; agendaOpen: boolean; onBook: () => void }) {
   const refs = useRef<(HTMLVideoElement | null)[]>([])
   const [vid, setVid] = useState(0)
 
@@ -280,8 +315,8 @@ function Hero({ videos, freeLabel, onBook }: { videos: string[]; freeLabel: stri
           <h1>Agende seu horário sem mandar mensagem.</h1>
           <p>Escolha a profissional, pegue o horário e receba o lembrete no WhatsApp.</p>
           <div className="s-hero-ctas">
-            <button className="s-btn s-btn-lg" onClick={onBook}>Agendar meu horário</button>
-            <a href="#profissionais" className="s-btn-ghost">Ver horários livres</a>
+            <button className="s-btn s-btn-lg" onClick={onBook}>{bookLabel}</button>
+            <a href={agendaOpen ? '#profissionais' : '#servicos'} className="s-btn-ghost">{agendaOpen ? 'Ver horários livres' : 'Ver serviços'}</a>
           </div>
         </div>
       </div>
@@ -296,6 +331,8 @@ type BookingProps = {
 
 function Booking({ shop, professionals, services, days, busy, now, initialProfessional, nextFree, onClose, onBooked }: BookingProps) {
   const tz = shop.timezone
+  const country = shop.country || 'BR'
+  const payNote = shop.payment_text ? 'sinal conforme a política' : 'paga no salão'
   const [step, setStep] = useState(initialProfessional ? 2 : 1)
   const [professionalId, setProfessionalId] = useState<string | undefined>(initialProfessional)
   const [serviceId, setServiceId] = useState<string>()
@@ -347,7 +384,8 @@ function Booking({ shop, professionals, services, days, busy, now, initialProfes
   })()
 
   const digits = phone.replace(/\D/g, '')
-  const cant = !(name.trim().length > 1 && digits.length >= 10 && consent) || sending
+  const phoneOk = country === 'PT' ? digits.length === 9 : digits.length >= 10
+  const cant = !(name.trim().length > 1 && phoneOk && consent) || sending
 
   const labels = ['Passo 1 de 4 · Profissional', 'Passo 2 de 4 · Serviço', 'Passo 3 de 4 · Horário', 'Passo 4 de 4 · Seus dados', 'Confirmado']
   const summaryTitle = `${service?.name || ''} com ${professional?.name.split(' ')[0] || ''}`
@@ -409,8 +447,8 @@ function Booking({ shop, professionals, services, days, busy, now, initialProfes
               <h3 className="s-h3">Qual serviço?</h3>
               {services.map((s) => (
                 <button key={s.id} className={'s-opt' + (serviceId === s.id ? ' sel' : '')} onClick={() => pickService(s.id)}>
-                  <span className="s-opt-main"><b>{s.name}</b><small>{s.duration_min} min</small></span>
-                  <span className="s-price">{brl(s.price_cents)}</span>
+                  <span className="s-opt-main"><b>{s.name}</b>{s.price_cents > 0 && <small>{s.duration_min} min</small>}</span>
+                  <span className="s-price">{priceLabel(s.price_cents, country)}</span>
                 </button>
               ))}
             </>
@@ -458,18 +496,24 @@ function Booking({ shop, professionals, services, days, busy, now, initialProfes
               <div className="s-summary">
                 <b>{summaryTitle}</b>
                 <span>{summaryWhen}</span>
-                <span className="s-price">{service && brl(service.price_cents)} · paga no salão</span>
+                <span className="s-price">{service && priceLabel(service.price_cents, country)} · {payNote}</span>
               </div>
               <label className="s-field">Nome
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como te chamamos?" autoComplete="name" />
               </label>
               <label className="s-field">WhatsApp
-                <input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} inputMode="tel" placeholder="(11) 90000-0000" autoComplete="tel" />
+                <input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value, country))} inputMode="tel" placeholder={country === 'PT' ? '912 345 678' : '(11) 90000-0000'} autoComplete="tel" />
               </label>
               <label className="s-check">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <span>Aceito receber lembretes pelo WhatsApp. Usamos seu número só pra falar deste agendamento.</span>
               </label>
+              {shop.policy?.length > 0 && (
+                <details className="s-policy-box">
+                  <summary>Ao confirmar, aceita a política de agendamento</summary>
+                  {shop.policy.map((p) => <div key={p.title}><b>{p.title}</b>{p.items.map((t, i) => <p key={i}>{t}</p>)}</div>)}
+                </details>
+              )}
               {error && <div className="s-error">{error}</div>}
               <button className="s-btn s-confirm" disabled={cant} onClick={confirm}>{sending ? 'Reservando…' : 'Confirmar agendamento'}</button>
               <p className="s-hint" style={{ textAlign: 'center' }}>Nada é cobrado no site.</p>
@@ -483,7 +527,7 @@ function Booking({ shop, professionals, services, days, busy, now, initialProfes
               <div className="s-summary" style={{ width: '100%' }}>
                 <b>{summaryTitle}</b>
                 <span>{summaryWhen}</span>
-                <span className="s-price">{service && brl(service.price_cents)} · paga no salão, depois do atendimento</span>
+                <span className="s-price">{service && priceLabel(service.price_cents, country)} · {shop.payment_text ? payNote : 'paga no salão, depois do atendimento'}</span>
               </div>
               <p>Antes do horário o salão te manda um lembrete no WhatsApp ({phone}). Tolerância de atraso: {shop.late_tolerance_min} min.</p>
               {token && <a href={`/agendamento/${token}`} className="s-manage">Ver ou cancelar este agendamento</a>}
