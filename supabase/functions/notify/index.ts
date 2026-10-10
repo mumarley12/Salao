@@ -1,11 +1,14 @@
 // Notificações push do painel (Web Push). Chamada pelo pg_cron de 15 em 15 minutos (ver 0008_notify_cron.sql).
-// Segredos: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:...) e NOTIFY_SECRET (o mesmo do cron).
+// Chaves no Vault do banco (vapid_public_key, vapid_private_key, vapid_subject, notify_secret), lidas por
+// public.notify_config() (só service_role). Os segredos da função com os mesmos nomes em maiúsculas têm prioridade.
 // O WhatsApp nunca é enviado daqui: o aviso leva ao painel e o envio continua manual.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4'
 import webpush from 'npm:web-push@3.6.7'
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-webpush.setVapidDetails(Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@example.com', Deno.env.get('VAPID_PUBLIC_KEY')!, Deno.env.get('VAPID_PRIVATE_KEY')!)
+const { data: cfg } = await db.rpc('notify_config')
+const conf = (k: string) => Deno.env.get(k.toUpperCase()) || (cfg as Record<string, string> | null)?.[k] || ''
+webpush.setVapidDetails(conf('vapid_subject') || 'mailto:admin@example.com', conf('vapid_public_key'), conf('vapid_private_key'))
 
 type Shop = { id: string; name: string; timezone: string; panel_token: string; logo_url: string | null; confirm_until: string }
 type Appt = { id: string; client_name: string; service_name: string; starts_at: string; created_at: string; source: string; status: string; deposit_status: string; reminder_sent_at: string | null; client_confirmed_at: string | null }
@@ -86,7 +89,7 @@ async function tick() {
 }
 
 Deno.serve(async (req) => {
-  if (req.headers.get('x-notify-secret') !== Deno.env.get('NOTIFY_SECRET')) return new Response('forbidden', { status: 403 })
+  if (!conf('notify_secret') || req.headers.get('x-notify-secret') !== conf('notify_secret')) return new Response('forbidden', { status: 403 })
   const n = await tick()
   return Response.json({ ok: true, shops: n })
 })
