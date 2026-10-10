@@ -20,7 +20,7 @@ export default function BookingPage({ params }: PageProps<'/agendamento/[token]'
   const [asking, setAsking] = useState(false)
 
   const load = async () => {
-    const { data } = await supabase.rpc('get_booking', { p_token: token })
+    const { data } = await supabase.rpc('get_booking_v2', { p_token: token })
     setB(Array.isArray(data) && data[0] ? (data[0] as Booking) : null)
   }
   useEffect(() => { load() }, [token]) // eslint-disable-line react-hooks/exhaustive-deps

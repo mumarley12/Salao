@@ -84,8 +84,9 @@ end;
 $$;
 
 -- A página do agendamento precisa do país (moeda) e do texto de pagamento.
-drop function public.get_booking(uuid);
-create function public.get_booking(p_token uuid)
+-- Função nova (get_booking_v2) em vez de trocar o retorno de get_booking: assim nada é apagado
+-- e a get_booking antiga continua funcionando para quem ainda a chama.
+create or replace function public.get_booking_v2(p_token uuid)
 returns table (
   shop_slug text, shop_name text, shop_address text, shop_whatsapp text, timezone text, cancel_hours int,
   professional_name text, service_name text, price_cents int, client_name text,
