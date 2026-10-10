@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Professional, Service, Shop } from '@/lib/types'
 import ShopSite from './ShopSite'
+import SlotsSite from './SlotsSite'
 
-const SHOP_COLUMNS = 'id, slug, name, address, city, phone, whatsapp, instagram, hours_text, timezone, logo_url, hero_videos, gallery, cancel_hours, late_tolerance_min, country, payment_text, policy, announcement, created_at'
+const SHOP_COLUMNS = 'id, slug, name, address, city, phone, whatsapp, instagram, hours_text, timezone, logo_url, hero_videos, gallery, cancel_hours, late_tolerance_min, country, payment_text, policy, announcement, booking_mode, tiktok, deposit_cents, created_at'
 
 async function load(slug: string) {
   const { data: shop } = await supabase.from('shops').select(SHOP_COLUMNS).eq('slug', slug).maybeSingle<Shop>()
@@ -21,7 +22,9 @@ export async function generateMetadata({ params }: PageProps<'/[slug]'>): Promis
   const data = await load(slug)
   if (!data) return { title: 'Salão não encontrado' }
   const title = `${data.shop.name} · Agende seu horário`
-  const description = `Escolha a profissional, pegue o horário e receba o lembrete no WhatsApp. ${data.shop.address || ''}`.trim()
+  const description = (data.shop.booking_mode === 'slots'
+    ? `Marque em 3 etapas: escolha a vaga, o serviço e deixe o seu contacto. ${data.shop.address || ''}`
+    : `Escolha a profissional, pegue o horário e receba o lembrete no WhatsApp. ${data.shop.address || ''}`).trim()
   return {
     title,
     description,
@@ -34,5 +37,6 @@ export default async function Page({ params }: PageProps<'/[slug]'>) {
   const { slug } = await params
   const data = await load(slug)
   if (!data) notFound()
+  if (data.shop.booking_mode === 'slots') return <SlotsSite shop={data.shop} services={data.services} />
   return <ShopSite shop={data.shop} professionals={data.professionals} services={data.services} />
 }

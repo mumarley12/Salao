@@ -177,3 +177,29 @@ export function waNumber(digits: string, country: Country = 'BR') {
 export function displayPhone(digits: string, country: Country = 'BR') {
   return country === 'PT' ? formatPhone(digits, 'PT') : formatPhone(digits.replace(/^55(?=\d{10,11}$)/, ''))
 }
+
+// Painel 2a / site 1c: "13h" ou "13h30" e "qui 29/10".
+export const WD_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+export const hourLabel = (iso: string | Date, tz: string) => {
+  const z = zoned(new Date(iso), tz)
+  return `${z.h}h${z.min ? pad(z.min) : ''}`
+}
+export const shortDay = (dayKey: string) => `${WD_SHORT[weekdayOf(dayKey)]} ${Number(dayKey.slice(8))}/${Number(dayKey.slice(5, 7))}`
+
+// "Outubro 2026"
+export const monthTitle = (monthKey: string) => {
+  const name = monthName(Number(monthKey.slice(5, 7)))
+  return `${name[0].toUpperCase()}${name.slice(1)} ${monthKey.slice(0, 4)}`
+}
+
+// Mês "2026-10" deslocado n meses.
+export function addMonths(monthKey: string, n: number) {
+  const [y, m] = monthKey.split('-').map(Number)
+  const t = y * 12 + (m - 1) + n
+  return `${Math.floor(t / 12)}-${pad((t % 12) + 1)}`
+}
+
+export const daysInMonth = (monthKey: string) => {
+  const [y, m] = monthKey.split('-').map(Number)
+  return new Date(Date.UTC(y, m, 0)).getUTCDate()
+}

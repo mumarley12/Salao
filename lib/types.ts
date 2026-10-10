@@ -18,6 +18,12 @@ export type Shop = {
   payment_text: string | null
   policy: { title: string; items: string[] }[]
   announcement: { title: string; text: string; until: string } | null
+  // 'slots': o site mostra só as vagas publicadas no Calendário do painel (painel 2a / site 1c).
+  booking_mode?: 'hours' | 'slots'
+  tiktok?: string | null
+  deposit_cents?: number
+  confirm_until?: string
+  remind_max_days?: number
   created_at: string
 }
 
@@ -58,9 +64,27 @@ export type Appointment = {
   starts_at: string
   ends_at: string
   status: AppointmentStatus
-  source: 'site' | 'counter' | 'walkin'
+  source: 'site' | 'counter' | 'walkin' | 'manual'
   cancel_token: string
   created_at: string
+  deposit_status?: DepositStatus
+  deposit_cents?: number | null
+  reminder_sent_at?: string | null
+  client_confirmed_at?: string | null
+  seen_at?: string | null
+}
+
+export type DepositStatus = 'pending' | 'sent' | 'paid'
+
+// Vaga do Calendário. published: está no site; in_draft: está no rascunho do painel.
+export type SlotRow = { id: string; professional_id: string; starts_at: string; published: boolean; in_draft: boolean }
+
+// Vaga livre mostrada no site.
+export type PublicSlot = { id: string; professional_id: string; starts_at: string }
+
+export type NotificationPrefs = {
+  new_booking: boolean; before_appt: boolean; before_min: 30 | 60 | 120; reminders_due: boolean
+  reminders_hour: number; not_confirmed: boolean; deposit_missing: boolean
 }
 
 export type Block = {

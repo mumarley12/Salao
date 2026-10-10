@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase, errorMessage } from '@/lib/supabase'
 import { DEMO_PANEL_TOKEN } from '@/lib/demo'
+import SlotsPanel from './SlotsPanel'
 import type { Appointment, Professional, ProfessionalHours, Block, Service, Shop } from '@/lib/types'
 import {
   addDays, atLocal, dayLabel, displayPhone, formatPhone, money, initials, monthName, scheduleLabels,
@@ -74,6 +75,8 @@ export default function Panel({ token }: { token: string }) {
 
   if (loadError) return <div className="panel p-center"><div className="p-card"><h1 className="p-h1">Link inválido</h1><p className="p-sub">{loadError} Confira se copiou o link inteiro.</p></div></div>
   if (!data) return <div className="panel p-center"><p className="p-sub">Carregando painel…</p></div>
+  // Salão com vagas publicadas (Danieela_nails): painel 2a.
+  if (data.shop.booking_mode === 'slots') return <SlotsPanel token={token} />
 
   const { shop, professionals, services, appointments, blocks } = data
   const activeProfessionals = professionals.filter((b) => b.active)
