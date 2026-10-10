@@ -62,7 +62,7 @@ async function tick() {
     const tz = shop.timezone
     const L = local(now, tz)
     const { data: rows } = await db.from('appointments').select('id, client_name, service_name, starts_at, created_at, source, status, deposit_status, reminder_sent_at, client_confirmed_at')
-      .eq('shop_id', shop.id).eq('status', 'pending').gte('starts_at', new Date(now.getTime() - 86400000).toISOString()).lte('starts_at', new Date(now.getTime() + 8 * 86400000).toISOString())
+      .eq('shop_id', shop.id).eq('status', 'pending').gte('starts_at', new Date(now.getTime() - 86400000).toISOString()).lte('starts_at', new Date(now.getTime() + 366 * 86400000).toISOString()) // marcações feitas hoje podem ser para daqui a semanas
     const appts = (rows || []) as Appt[]
 
     if (p.new_booking) for (const a of appts.filter((a) => a.source === 'site' && now.getTime() - Date.parse(a.created_at) < 86400000))
