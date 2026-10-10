@@ -315,7 +315,7 @@ function Hero({ videos, freeLabel, bookLabel, agendaOpen, showPros, onBook }: { 
         <div data-reveal className="s-hero-text">
           <div className="s-pill"><span className="s-dot" /><span>{freeLabel}</span></div>
           <h1>Agende seu horário sem mandar mensagem.</h1>
-          <p>Escolha a profissional, pegue o horário e receba o lembrete no WhatsApp.</p>
+          <p>{showPros ? 'Escolha a profissional' : 'Escolha o serviço'}, pegue o horário e receba o lembrete no WhatsApp.</p>
           <div className="s-hero-ctas">
             <button className="s-btn s-btn-lg" onClick={onBook}>{bookLabel}</button>
             <a href={agendaOpen && showPros ? '#profissionais' : '#servicos'} className="s-btn-ghost">{agendaOpen && showPros ? 'Ver horários livres' : 'Ver serviços'}</a>
