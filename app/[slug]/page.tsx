@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import type { Professional, Service, Shop } from '@/lib/types'
 import ShopSite from './ShopSite'
 
-const SHOP_COLUMNS = 'id, slug, name, address, city, phone, whatsapp, instagram, hours_text, timezone, logo_url, hero_videos, gallery, cancel_hours, late_tolerance_min, created_at'
+const SHOP_COLUMNS = 'id, slug, name, address, city, phone, whatsapp, instagram, hours_text, timezone, logo_url, hero_videos, gallery, cancel_hours, late_tolerance_min, country, payment_text, policy, announcement, created_at'
 
 async function load(slug: string) {
   const { data: shop } = await supabase.from('shops').select(SHOP_COLUMNS).eq('slug', slug).maybeSingle<Shop>()
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: PageProps<'/[slug]'>): Promis
   return {
     title,
     description,
-    openGraph: { title, description, type: 'website', locale: 'pt_BR', siteName: data.shop.name, url: `/${slug}` },
+    openGraph: { title, description, type: 'website', locale: data.shop.country === 'PT' ? 'pt_PT' : 'pt_BR', siteName: data.shop.name, url: `/${slug}` },
     icons: data.shop.logo_url ? { icon: data.shop.logo_url } : undefined,
   }
 }
