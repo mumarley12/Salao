@@ -4,7 +4,7 @@ import Panel from './Panel'
 export async function generateMetadata({ params }: PageProps<'/painel/[token]'>): Promise<Metadata> {
   const { token } = await params
   return {
-    title: 'Painel do salão',
+    title: 'Painel Unhas',
     robots: { index: false, follow: false },
     // Instalar no ecrã principal: no iPhone é a única forma de receber notificações.
     manifest: `/painel/${token}/manifest.webmanifest`,

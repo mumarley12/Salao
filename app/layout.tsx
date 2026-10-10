@@ -4,7 +4,7 @@ import './globals.css'
 export const metadata: Metadata = {
   // Endereço público: as prévias de link (WhatsApp, Instagram) precisam de URLs absolutas.
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://agenda-por-profissional.vercel.app'),
-  title: 'Agenda por Profissional',
+  title: 'Agenda Unhas',
   description: 'Site de agendamento para salões de beleza: cada profissional com a própria agenda.',
 }
 
