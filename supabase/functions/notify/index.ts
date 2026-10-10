@@ -90,6 +90,13 @@ async function tick() {
 
 Deno.serve(async (req) => {
   if (!conf('notify_secret') || req.headers.get('x-notify-secret') !== conf('notify_secret')) return new Response('forbidden', { status: 403 })
+  // { "test": true } manda um aviso de teste para todos os aparelhos inscritos.
+  if ((await req.json().catch(() => ({}))).test) {
+    const { data: subs } = await db.from('push_subscriptions').select('shop_id').is('disabled_at', null)
+    const { data: shops } = await db.from('shops').select('id, name, timezone, panel_token, logo_url, confirm_until').in('id', [...new Set((subs || []).map((s) => s.shop_id))])
+    for (const shop of (shops || []) as Shop[]) await send(shop, 'Teste', 'As notificações do painel estão a funcionar.', 'hoje')
+    return Response.json({ ok: true, test: (shops || []).length })
+  }
   const n = await tick()
   return Response.json({ ok: true, shops: n })
 })
