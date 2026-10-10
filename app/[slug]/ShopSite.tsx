@@ -71,10 +71,12 @@ export default function ShopSite({ shop, professionals, services }: Props) {
   const announcement = shop.announcement && shop.announcement.until >= todayKey(tz) ? shop.announcement : null
   const policy = shop.policy || []
 
+  // Com uma profissional só, a seção "Nossas profissionais" e o passo de escolher quem atende somem.
+  const solo = professionals.length === 1
   const [booking, setBooking] = useState<{ professionalId?: string } | null>(null)
   const openBooking = (professionalId?: string) => {
     if (!agendaOpen) { if (contactLink) window.open(contactLink, '_blank', 'noopener'); return }
-    loadBusy(); setBooking({ professionalId })
+    loadBusy(); setBooking({ professionalId: professionalId || (solo ? professionals[0].id : undefined) })
   }
   const bookLabel = agendaOpen ? 'Agendar meu horário' : `Marcar pelo ${contactName}`
 
@@ -93,7 +95,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
           {!isMobile && (
             <nav className="s-nav">
               <a href="#topo">Início</a>
-              <a href="#profissionais">Profissionais</a>
+              {!solo && <a href="#profissionais">Profissionais</a>}
               <a href="#como-funciona">Como funciona</a>
               <a href="#trabalhos">Trabalhos</a>
               <a href="#servicos">Serviços</a>
@@ -109,7 +111,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
         </div>
       </header>
 
-      <Hero videos={shop.hero_videos} bookLabel={bookLabel} agendaOpen={agendaOpen}
+      <Hero videos={shop.hero_videos} bookLabel={bookLabel} agendaOpen={agendaOpen} showPros={!solo}
         freeLabel={!agendaOpen ? 'Agenda online abre em breve' : freeToday > 0 ? `${freeToday} horários livres hoje` : `Agenda aberta pros próximos ${DAYS_AHEAD} dias`} onBook={() => openBooking()} />
 
       {announcement && (
@@ -121,7 +123,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
         </section>
       )}
 
-      <section data-reveal id="profissionais" className="s-section s-professionals">
+      {!solo && <section data-reveal id="profissionais" className="s-section s-professionals">
         <h2 className="s-h2">Nossas profissionais</h2>
         <div className="s-professional-grid">
           {professionals.map((b) => {
@@ -144,7 +146,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
             )
           })}
         </div>
-      </section>
+      </section>}
 
       <section data-reveal className="s-section s-two">
         <div>
@@ -279,7 +281,7 @@ export default function ShopSite({ shop, professionals, services }: Props) {
 // O fundo do topo aceita vídeos e imagens.
 const IMAGE = /\.(jpe?g|png|webp)(\?|$)/i
 
-function Hero({ videos, freeLabel, bookLabel, agendaOpen, onBook }: { videos: string[]; freeLabel: string; bookLabel: string; agendaOpen: boolean; onBook: () => void }) {
+function Hero({ videos, freeLabel, bookLabel, agendaOpen, showPros, onBook }: { videos: string[]; freeLabel: string; bookLabel: string; agendaOpen: boolean; showPros: boolean; onBook: () => void }) {
   const refs = useRef<(HTMLVideoElement | null)[]>([])
   const [vid, setVid] = useState(0)
 
@@ -316,7 +318,7 @@ function Hero({ videos, freeLabel, bookLabel, agendaOpen, onBook }: { videos: st
           <p>Escolha a profissional, pegue o horário e receba o lembrete no WhatsApp.</p>
           <div className="s-hero-ctas">
             <button className="s-btn s-btn-lg" onClick={onBook}>{bookLabel}</button>
-            <a href={agendaOpen ? '#profissionais' : '#servicos'} className="s-btn-ghost">{agendaOpen ? 'Ver horários livres' : 'Ver serviços'}</a>
+            <a href={agendaOpen && showPros ? '#profissionais' : '#servicos'} className="s-btn-ghost">{agendaOpen && showPros ? 'Ver horários livres' : 'Ver serviços'}</a>
           </div>
         </div>
       </div>
@@ -387,7 +389,10 @@ function Booking({ shop, professionals, services, days, busy, now, initialProfes
   const phoneOk = country === 'PT' ? digits.length === 9 : digits.length >= 10
   const cant = !(name.trim().length > 1 && phoneOk && consent) || sending
 
-  const labels = ['Passo 1 de 4 · Profissional', 'Passo 2 de 4 · Serviço', 'Passo 3 de 4 · Horário', 'Passo 4 de 4 · Seus dados', 'Confirmado']
+  const solo = professionals.length === 1
+  const labels = solo
+    ? ['', 'Passo 1 de 3 · Serviço', 'Passo 2 de 3 · Horário', 'Passo 3 de 3 · Seus dados', 'Confirmado']
+    : ['Passo 1 de 4 · Profissional', 'Passo 2 de 4 · Serviço', 'Passo 3 de 4 · Horário', 'Passo 4 de 4 · Seus dados', 'Confirmado']
   const summaryTitle = `${service?.name || ''} com ${professional?.name.split(' ')[0] || ''}`
   const summaryWhen = slot ? `${relativeDay(dayKey, tz)}, ${dayKey.slice(8)}/${dayKey.slice(5, 7)} às ${slot.label}` : ''
 
@@ -416,12 +421,12 @@ function Booking({ shop, professionals, services, days, busy, now, initialProfes
       <div className="s-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="s-modal-head">
           <div className="s-modal-top">
-            {step > 1 && step < 5 ? <button className="s-back" onClick={() => { setError(''); setStep(step - 1) }}>← Voltar</button> : <span />}
+            {step > (solo ? 2 : 1) && step < 5 ? <button className="s-back" onClick={() => { setError(''); setStep(step - 1) }}>← Voltar</button> : <span />}
             <span className="s-step">{labels[step - 1]}</span>
             <button className="s-close" aria-label="Fechar" onClick={onClose}>×</button>
           </div>
           <div className="s-progress">
-            {[1, 2, 3, 4].map((n) => <div key={n} className={n <= Math.min(step, 4) ? 'on' : ''} />)}
+            {(solo ? [2, 3, 4] : [1, 2, 3, 4]).map((n) => <div key={n} className={n <= Math.min(step, 4) ? 'on' : ''} />)}
           </div>
         </div>
 

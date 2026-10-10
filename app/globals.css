@@ -145,7 +145,7 @@ img{display:block}
 .s-back{background:none;border:0;color:#CFC8BC;font:600 14px 'Albert Sans',sans-serif;cursor:pointer;padding:6px 0}
 .s-step{font-size:13px;color:#A8A196;font-weight:600}
 .s-close{background:#2A1F2D;border:0;color:#F3EFE7;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
-.s-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px}
+.s-progress{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;margin-top:14px}
 .s-progress div{height:4px;border-radius:4px;background:rgba(255,255,255,.1)}
 .s-progress div.on{background:#E7A3B7}
 .s-modal-body{padding:22px 20px 24px;display:flex;flex-direction:column;gap:12px}
